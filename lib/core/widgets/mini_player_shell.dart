@@ -42,10 +42,17 @@ class MiniPlayerShell extends StatelessWidget {
         borderRadius: AppRadius.cardRadius,
         child: Row(
           children: [
-            AppImageSurface(
-              image: image,
-              borderRadius: AppRadius.smRadius,
-              aspectRatio: 1,
+            SizedBox(
+              width: 48,
+              height: 48,
+              // Fixed box, not `aspectRatio`: this Row sits in contexts
+              // (e.g. inside a scrolling list, or the app shell's bottom
+              // nav slot) that can hand AppImageSurface unbounded
+              // constraints, which AspectRatio cannot resolve on its own.
+              child: AppImageSurface(
+                image: image,
+                borderRadius: AppRadius.smRadius,
+              ),
             ),
             const SizedBox(width: AppSpacing.sm),
             Expanded(

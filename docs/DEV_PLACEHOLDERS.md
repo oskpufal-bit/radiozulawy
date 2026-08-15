@@ -13,7 +13,7 @@ produkcyjnym wszystkie wiersze ze statusem `OPEN` muszą zostać zamknięte.
 | PH-005 | Polityka prywatności | `https://dev-placeholder.invalid/polityka-prywatnosci` | `lib/app/config/app_config.dart` (`privacyPolicyUrl`) | Finalny link do polityki prywatności (treść dostarczona później) | OPEN |
 | PH-006 | Regulamin | `https://dev-placeholder.invalid/regulamin` | `lib/app/config/app_config.dart` (`termsUrl`) | Finalny link do regulaminu / zgody RODO (treść dostarczona później) | OPEN |
 | PH-007 | Środowisko builda | `APP_ENV` domyślnie `dev` | `lib/app/config/app_environment.dart`, `lib/app/config/app_config.dart` | Ustawić `--dart-define=APP_ENV=prod` (i pozostałe zmienne) w pipeline release | OPEN |
-| PH-008 | Router — ekran startowy | `initialLocation: AppRoutes.devDesignSystem` (`/dev/design-system`) | `lib/app/router/app_router.dart` | Przywrócić realny ekran startowy (`AppRoutes.radio` lub navigation shell) po zaimplementowaniu właściwych modułów biznesowych; usunąć/odlinkować `DesignSystemPreviewPage` z produkcyjnego flow | OPEN |
+| PH-008 | Router — ekran startowy | `initialLocation: AppRoutes.devDesignSystem` (`/dev/design-system`) | `lib/app/router/app_router.dart` | Przywrócić realny ekran startowy (`AppRoutes.radio` lub navigation shell) po zaimplementowaniu właściwych modułów biznesowych; usunąć/odlinkować `DesignSystemPreviewPage` z produkcyjnego flow | CLOSED — App Shell (etap 3) przywrócił `initialLocation: AppRoutes.radio`; `/dev/design-system` pozostaje osiągalny bezpośrednim wpisaniem trasy, ale nie jest linkowany z bottom navigation |
 
 ## Jak dostarczyć realne wartości
 

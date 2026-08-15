@@ -10,7 +10,9 @@ lib/
 ├── app/            # kompozycja aplikacji: bootstrap, konfiguracja, router, theme
 │   ├── bootstrap/  # start aplikacji (WidgetsFlutterBinding, DI, runApp) — testowalny
 │   ├── config/     # AppConfig / AppEnvironment (wartości środowiskowe)
-│   ├── router/      # centralna konfiguracja go_router
+│   ├── router/      # centralna konfiguracja go_router (AppRoutes, appRouterProvider)
+│   ├── shell/        # AppShell — StatefulShellRoute + bottom navigation + slot
+│   │                 # na globalny mini-player, patrz docs/NAVIGATION.md
 │   ├── theme/       # design tokens (kolory, typografia, spacing, radius,
 │   │                # cienie, gradienty, blur, durations) + ThemeData —
 │   │                # patrz docs/DESIGN_SYSTEM.md
@@ -25,11 +27,16 @@ lib/
 │   ├── storage/      # LocalStorage (SharedPreferences), SecureStorage
 │   ├── utils/        # AppLogger i inne narzędzia bez zależności biznesowych
 │   ├── widgets/       # współdzielone widgety Design Systemu (przyciski, karty,
-│   │                  # stany, GlassSurface, MiniPlayerShell, ...) — patrz
-│   │                  # docs/DESIGN_SYSTEM.md
+│   │                  # stany, GlassSurface, MiniPlayerShell, AppDetailPage,
+│   │                  # ...) — patrz docs/DESIGN_SYSTEM.md
 │   └── providers.dart # DI: sharedPreferences/localStorage/secureStorage/dio/apiClient
 │
 ├── features/       # moduły biznesowe, feature-first
+│   ├── radio/        # zakładka startowa — placeholder (patrz docs/NAVIGATION.md)
+│   ├── news/         # zakładka Newsy — placeholder + `/news/:slug`
+│   ├── submit/        # zakładka Zgłoś — placeholder
+│   ├── podcasts/      # zakładka Podcasty — placeholder + `/podcasts/:id`
+│   ├── more/          # zakładka Więcej — placeholder, linkuje do tras pełnoekranowych
 │   └── <feature>/
 │       ├── data/         # źródła danych, repozytoria (implementacje)
 │       ├── domain/       # modele i kontrakty repozytoriów (gdy potrzebne)
@@ -38,12 +45,14 @@ lib/
 └── main.dart       # wyłącznie wywołuje bootstrap()
 ```
 
-`core/audio` i pozostałe podkatalogi `features/*` (news, podcasts, contests,
-submissions, schedule, notifications, more) celowo **nie istnieją jeszcze** —
-zgodnie z zasadą projektu nie tworzymy pustych katalogów na zapas. Twórz
-katalog feature'a dopiero w zadaniu, które faktycznie go implementuje, trzymając
-się układu `data/domain/presentation` powyżej (pomijaj warstwy, których dany
-feature nie potrzebuje).
+Wszystkie pięć feature'ów głównej nawigacji istnieją już jako lekkie
+placeholdery (App Shell, patrz docs/NAVIGATION.md); ich `data`/`domain` będą
+dodawane w kolejnych zadaniach. `core/audio` i pozostałe podkatalogi
+`features/*` (contests, schedule, notifications, settings) celowo **nie
+istnieją jeszcze** — zgodnie z zasadą projektu nie tworzymy pustych katalogów
+na zapas. Twórz katalog feature'a dopiero w zadaniu, które faktycznie go
+implementuje, trzymając się układu `data/domain/presentation` powyżej
+(pomijaj warstwy, których dany feature nie potrzebuje).
 
 ## Kierunek zależności
 
@@ -72,22 +81,13 @@ zadaniu.
 
 ## Routing — go_router
 
-`app/router/app_router.dart` eksponuje `appRouterProvider`. Obecnie jest jedna
-trasa (`/`, ekran startowy radia). Docelowo:
+`app/router/app_router.dart` eksponuje `appRouterProvider` i `AppRoutes`
+(stałe ścieżek — router jest jedynym miejscem, które je importuje; feature'y
+nie importują `app/router` z powrotem, patrz "Kierunek zależności" powyżej,
+więc nawigują po literalnych ścieżkach lokalnymi dla swojego feature'a).
 
-- bottom navigation → `StatefulShellRoute` w tym samym pliku (lub rozbite na
-  `app/router/` gdy urośnie),
-- zagnieżdżone trasy feature'ów (artykuł, odcinek podcastu, formularz
-  zgłoszenia) jako dzieci odpowiednich `GoRoute`,
-- deep linki z powiadomień mapowane na te same trasy.
-
-Ścieżki tras trzymamy jako stałe w `AppRoutes`, nie jako magiczne stringi
-rozrzucone po kodzie.
-
-`initialLocation` obecnie wskazuje na `AppRoutes.devDesignSystem`
-(`/dev/design-system`) — tymczasowo, na czas etapu Design Systemu (patrz
-`docs/DEV_PLACEHOLDERS.md`). Kolejny etap (navigation shell) powinien
-przywrócić realny ekran startowy jako `initialLocation`.
+Pełny opis App Shell, hierarchii tras i zasad dodawania nowych ekranów:
+**`docs/NAVIGATION.md`**. `initialLocation` to `AppRoutes.radio` (`/`).
 
 ## Design System
 
@@ -152,7 +152,9 @@ aktualizowany przez kolejne zadania, nie tylko na tym etapie.
 - **Feature-first**, nie layer-first — łatwiej skalować i przydzielać zadania
   kolejnym agentom bez konfliktów w tych samych katalogach.
 - **Riverpod bez code-gen** na tym etapie — mniej zależności, prostszy setup.
-- **go_router** jako jedyny mechanizm nawigacji, przygotowany pod deep linki.
+- **go_router** jako jedyny mechanizm nawigacji, App Shell zbudowany na
+  `StatefulShellRoute.indexedStack` (patrz `docs/NAVIGATION.md`), przygotowany
+  pod deep linki.
 - **Dio + ApiClient + AppFailure** jako jedyna droga komunikacji sieciowej —
   feature'y nigdy nie łapią `DioException` bezpośrednio.
 - **`.invalid` placeholdery zamiast fikcyjnych, ale rozwiązywalnych domen** —

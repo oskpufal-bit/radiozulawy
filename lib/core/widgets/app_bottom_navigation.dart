@@ -156,9 +156,14 @@ class _NavButton extends StatelessWidget {
               size: 24,
             ),
             const SizedBox(height: 3),
-            Text(
-              item.label,
-              style: AppTypography.labelSmall.copyWith(color: color),
+            // Excluded from semantics: it repeats `item.label` above, and
+            // (unlike the Icon) Text auto-generates its own semantics node,
+            // which would otherwise merge in and announce the label twice.
+            ExcludeSemantics(
+              child: Text(
+                item.label,
+                style: AppTypography.labelSmall.copyWith(color: color),
+              ),
             ),
           ],
         ),
@@ -203,11 +208,17 @@ class _ReportButton extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 3),
-            Text(
-              'Zgłoś',
-              style: AppTypography.labelSmall.copyWith(
-                color: AppColors.textPrimary,
-                fontWeight: FontWeight.w700,
+            // Excluded from semantics: it repeats the Semantics label above
+            // ("Zgłoś zdarzenie"), and Text auto-generates its own
+            // semantics node, which would otherwise merge in and announce
+            // the label twice.
+            ExcludeSemantics(
+              child: Text(
+                'Zgłoś',
+                style: AppTypography.labelSmall.copyWith(
+                  color: AppColors.textPrimary,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
             ),
           ],

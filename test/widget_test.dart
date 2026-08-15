@@ -18,11 +18,12 @@ void main() {
         child: const RadioZulawyApp(),
       ),
     );
-    await tester.pumpAndSettle();
+    // Not pumpAndSettle: the Radio tab's LiveBadge pulses continuously
+    // (see docs/DESIGN_SYSTEM.md), so it never "settles".
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
 
-    // The app's initial route is currently the dev-only Design System
-    // Preview (see AppRoutes.devDesignSystem) — this stage is about the
-    // design system, not the final navigation shell.
-    expect(find.text('Design System'), findsOneWidget);
+    // The app starts on the Radio tab (see AppRoutes.radio).
+    expect(find.text('Radio Żuławy'), findsOneWidget);
   });
 }

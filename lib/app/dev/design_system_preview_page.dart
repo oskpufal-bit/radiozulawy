@@ -329,9 +329,13 @@ class _DesignSystemPreviewPageState extends State<DesignSystemPreviewPage> {
       elevated: true,
       child: Row(
         children: [
-          const AppImageSurface(
-            borderRadius: AppRadius.smRadius,
-            aspectRatio: 1,
+          const SizedBox(
+            width: 64,
+            height: 64,
+            // Fixed box, not `aspectRatio`: this Row lives inside a
+            // ListView item, which hands its children unbounded height —
+            // AspectRatio alone can't resolve that.
+            child: AppImageSurface(borderRadius: AppRadius.smRadius),
           ),
           const SizedBox(width: AppSpacing.md),
           Expanded(
