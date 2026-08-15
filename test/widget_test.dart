@@ -4,16 +4,22 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:radiozulawy/app/app.dart';
 import 'package:radiozulawy/core/providers.dart';
+import 'package:radiozulawy/features/radio/presentation/radio_providers.dart';
+
+import 'features/radio/fake_radio_repository.dart';
 
 void main() {
   testWidgets('App boots and shows the radio home screen', (tester) async {
     SharedPreferences.setMockInitialValues({});
     final sharedPreferences = await SharedPreferences.getInstance();
+    final fakeRadioRepository = FakeRadioRepository();
+    addTearDown(fakeRadioRepository.dispose);
 
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
           sharedPreferencesProvider.overrideWithValue(sharedPreferences),
+          radioRepositoryProvider.overrideWithValue(fakeRadioRepository),
         ],
         child: const RadioZulawyApp(),
       ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_gradients.dart';
@@ -7,16 +8,26 @@ import '../../../app/theme/app_shadows.dart';
 import '../../../app/theme/app_spacing.dart';
 import '../../../app/theme/app_typography.dart';
 import '../../../core/widgets/app_background.dart';
+import '../../../core/widgets/buttons/app_primary_button.dart';
 import '../../../core/widgets/live_badge.dart';
+import '../../../core/widgets/states/error_state.dart';
+import '../domain/radio_playback_state.dart';
+import 'radio_playback_controller.dart';
+import 'radio_providers.dart';
 
-/// Default tab on launch. Visually signals the future radio player module
-/// (branding, frequency, live indicator, hero surface) without implementing
-/// streaming, media notifications or playback state — that's a later task.
-class RadioHomeScreen extends StatelessWidget {
+/// Default tab on launch. Technical/intermediate screen for this stage: it
+/// wires the real playback engine (play/pause/retry, loading/buffering,
+/// errors) through `radioPlaybackControllerProvider`, but is not the final
+/// Radio Live layout (no hero artwork/current-show metadata yet — that's a
+/// later task, see docs/AUDIO.md).
+class RadioHomeScreen extends ConsumerWidget {
   const RadioHomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final state = ref.watch(radioPlaybackControllerProvider);
+    final controller = ref.read(radioPlaybackControllerProvider.notifier);
+
     return Scaffold(
       body: AppBackground(
         child: Column(
@@ -47,39 +58,61 @@ class RadioHomeScreen extends StatelessWidget {
                     borderRadius: AppRadius.lgRadius,
                     boxShadow: AppShadows.medium,
                   ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const LiveBadge(),
-                      const SizedBox(height: AppSpacing.lg),
-                      const Icon(
-                        Icons.graphic_eq_rounded,
-                        size: 56,
-                        color: Colors.white,
-                      ),
-                      const SizedBox(height: AppSpacing.md),
-                      Text(
-                        '106.4 FM',
-                        style: AppTypography.displayLarge.copyWith(
-                          color: Colors.white,
-                        ),
-                      ),
-                      const SizedBox(height: AppSpacing.xxs),
-                      Text(
-                        'Player pojawi się w kolejnym etapie developmentu.',
-                        style: AppTypography.bodyMedium.copyWith(
-                          color: Colors.white.withValues(alpha: 0.85),
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
-                  ),
+                  child: state.hasError
+                      ? ErrorState(
+                          title: 'Nie udało się połączyć',
+                          description: state.errorMessage,
+                          onRetry: controller.retry,
+                          icon: Icons.signal_wifi_off_rounded,
+                        )
+                      : _PlayerContent(state: state, controller: controller),
                 ),
               ),
             ),
           ],
         ),
       ),
+    );
+  }
+}
+
+class _PlayerContent extends StatelessWidget {
+  const _PlayerContent({required this.state, required this.controller});
+
+  final RadioPlaybackState state;
+  final RadioPlaybackController controller;
+
+  String get _actionLabel => switch (state.status) {
+    RadioPlaybackStatus.playing => 'Pauza',
+    RadioPlaybackStatus.loading => 'Łączenie...',
+    RadioPlaybackStatus.buffering => 'Buforowanie...',
+    _ => 'Słuchaj na żywo',
+  };
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        const LiveBadge(),
+        const SizedBox(height: AppSpacing.lg),
+        const Icon(Icons.graphic_eq_rounded, size: 56, color: Colors.white),
+        const SizedBox(height: AppSpacing.md),
+        Text(
+          '106.4 FM',
+          style: AppTypography.displayLarge.copyWith(color: Colors.white),
+        ),
+        const SizedBox(height: AppSpacing.lg),
+        AppPrimaryButton(
+          label: _actionLabel,
+          icon: state.isPlaying
+              ? Icons.pause_rounded
+              : Icons.play_arrow_rounded,
+          isLoading: state.isBuffering,
+          expand: false,
+          onPressed: controller.togglePlayback,
+        ),
+      ],
     );
   }
 }

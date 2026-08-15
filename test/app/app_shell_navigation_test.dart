@@ -6,6 +6,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:radiozulawy/app/app.dart';
 import 'package:radiozulawy/core/providers.dart';
 import 'package:radiozulawy/core/widgets/app_category_chip.dart';
+import 'package:radiozulawy/features/radio/domain/radio_playback_state.dart';
+import 'package:radiozulawy/features/radio/presentation/radio_providers.dart';
+
+import '../features/radio/fake_radio_repository.dart';
 
 // Not pumpAndSettle anywhere in this file: StatefulShellRoute.indexedStack
 // keeps every branch alive (that's how it preserves state), so the Radio
@@ -17,14 +21,19 @@ Future<void> _settle(WidgetTester tester) async {
   await tester.pump(const Duration(milliseconds: 300));
 }
 
-Future<void> _pumpApp(WidgetTester tester) async {
+Future<void> _pumpApp(
+  WidgetTester tester, {
+  FakeRadioRepository? radioRepository,
+}) async {
   SharedPreferences.setMockInitialValues({});
   final sharedPreferences = await SharedPreferences.getInstance();
+  final fakeRadioRepository = radioRepository ?? FakeRadioRepository();
 
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
         sharedPreferencesProvider.overrideWithValue(sharedPreferences),
+        radioRepositoryProvider.overrideWithValue(fakeRadioRepository),
       ],
       child: const RadioZulawyApp(),
     ),
@@ -142,5 +151,64 @@ void main() {
           .selected,
       isTrue,
     );
+  });
+
+  testWidgets('mini-player is hidden while radio is idle', (tester) async {
+    await _pumpApp(tester);
+
+    expect(
+      find.byKey(const ValueKey('mini-player-slot-hidden')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const ValueKey('mini-player-slot-visible')),
+      findsNothing,
+    );
+  });
+
+  testWidgets(
+    'mini-player appears for an active session and survives switching tabs',
+    (tester) async {
+      final fakeRadioRepository = FakeRadioRepository();
+      addTearDown(fakeRadioRepository.dispose);
+      await _pumpApp(tester, radioRepository: fakeRadioRepository);
+
+      fakeRadioRepository.emit(
+        const RadioPlaybackState(status: RadioPlaybackStatus.playing),
+      );
+      await _settle(tester);
+
+      expect(
+        find.byKey(const ValueKey('mini-player-slot-visible')),
+        findsOneWidget,
+      );
+      expect(find.text('Na żywo'), findsOneWidget);
+
+      await tester.tap(find.text('Newsy'));
+      await _settle(tester);
+
+      expect(
+        find.byKey(const ValueKey('mini-player-slot-visible')),
+        findsOneWidget,
+      );
+    },
+  );
+
+  testWidgets('tapping the mini-player play/pause button toggles playback', (
+    tester,
+  ) async {
+    final fakeRadioRepository = FakeRadioRepository();
+    addTearDown(fakeRadioRepository.dispose);
+    await _pumpApp(tester, radioRepository: fakeRadioRepository);
+
+    fakeRadioRepository.emit(
+      const RadioPlaybackState(status: RadioPlaybackStatus.playing),
+    );
+    await _settle(tester);
+
+    await tester.tap(find.byIcon(Icons.pause_rounded));
+    await _settle(tester);
+
+    expect(fakeRadioRepository.pauseCalls, 1);
   });
 }
