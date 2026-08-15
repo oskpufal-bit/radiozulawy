@@ -11,7 +11,11 @@ lib/
 │   ├── bootstrap/  # start aplikacji (WidgetsFlutterBinding, DI, runApp) — testowalny
 │   ├── config/     # AppConfig / AppEnvironment (wartości środowiskowe)
 │   ├── router/      # centralna konfiguracja go_router
-│   └── theme/       # ThemeData, kolory marki
+│   ├── theme/       # design tokens (kolory, typografia, spacing, radius,
+│   │                # cienie, gradienty, blur, durations) + ThemeData —
+│   │                # patrz docs/DESIGN_SYSTEM.md
+│   └── dev/         # ekrany tylko-deweloperskie (np. DesignSystemPreviewPage),
+│                    # nigdy linkowane z właściwego flow aplikacji
 │
 ├── core/           # kod współdzielony między feature'ami, bez logiki biznesowej
 │   ├── api/         # ApiClient — generyczny wrapper na Dio zwracający AppFailure
@@ -20,7 +24,9 @@ lib/
 │   ├── extensions/   # drobne rozszerzenia (np. BuildContext)
 │   ├── storage/      # LocalStorage (SharedPreferences), SecureStorage
 │   ├── utils/        # AppLogger i inne narzędzia bez zależności biznesowych
-│   ├── widgets/       # współdzielone widgety (np. AsyncValueWidget)
+│   ├── widgets/       # współdzielone widgety Design Systemu (przyciski, karty,
+│   │                  # stany, GlassSurface, MiniPlayerShell, ...) — patrz
+│   │                  # docs/DESIGN_SYSTEM.md
 │   └── providers.dart # DI: sharedPreferences/localStorage/secureStorage/dio/apiClient
 │
 ├── features/       # moduły biznesowe, feature-first
@@ -77,6 +83,22 @@ trasa (`/`, ekran startowy radia). Docelowo:
 
 Ścieżki tras trzymamy jako stałe w `AppRoutes`, nie jako magiczne stringi
 rozrzucone po kodzie.
+
+`initialLocation` obecnie wskazuje na `AppRoutes.devDesignSystem`
+(`/dev/design-system`) — tymczasowo, na czas etapu Design Systemu (patrz
+`docs/DEV_PLACEHOLDERS.md`). Kolejny etap (navigation shell) powinien
+przywrócić realny ekran startowy jako `initialLocation`.
+
+## Design System
+
+`lib/app/theme/` zawiera design tokens (kolory, typografia, spacing, radius,
+cienie, gradienty, blur, durations) i `AppTheme`. `lib/core/widgets/` zawiera
+reużywalne komponenty zbudowane na tych tokenach (przyciski, karty, stany,
+`GlassSurface`, `MiniPlayerShell`, `AppBottomNavigation`, ...). To jest
+**jedyne** źródło prawdy dla stylu UI — nowe ekrany komponują te tokeny/
+widgety zamiast definiować własne kolory/spacing/radius. Pełny opis:
+`docs/DESIGN_SYSTEM.md`. Katalog komponentów można obejrzeć pod
+`/dev/design-system` (`DesignSystemPreviewPage`, `lib/app/dev/`).
 
 ## Networking — Dio
 

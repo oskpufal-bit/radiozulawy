@@ -20,6 +20,9 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('Radio Żuławy 106.4 FM'), findsOneWidget);
+    // The app's initial route is currently the dev-only Design System
+    // Preview (see AppRoutes.devDesignSystem) — this stage is about the
+    // design system, not the final navigation shell.
+    expect(find.text('Design System'), findsOneWidget);
   });
 }
