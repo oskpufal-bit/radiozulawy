@@ -1,17 +1,48 @@
-# radiozulawy
+# Radio Żuławy 106.4 FM
 
-Dedykowana aplikacja dla lokalnej stacji radiowej
+Oficjalna aplikacja mobilna Radia Żuławy 106.4 FM — obejmująca Elbląg,
+Malbork, Żuławy, Powiśle, Mierzeję Wiślaną i okolice. Docelowo: radio na
+żywo, aktualności, podcasty, konkursy, zgłaszanie zdarzeń, ramówka i
+powiadomienia.
 
-## Getting Started
+Projekt jest we wczesnej fazie developmentu — obecnie zbudowany jest
+fundament techniczny (architektura, DI, routing, networking, storage), a
+funkcjonalności biznesowe powstają w kolejnych zadaniach.
 
-This project is a starting point for a Flutter application.
+## Wymagania
 
-A few resources to get you started if this is your first Flutter project:
+- Flutter `3.44.4` (channel stable)
+- Dart SDK `^3.12.2` (dołączony do powyższego Fluttera)
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+## Uruchomienie
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+```bash
+flutter pub get
+flutter run
+```
+
+Domyślnie aplikacja startuje z bezpiecznymi placeholderami deweloperskimi
+(brak realnego API/streamu — patrz niżej). Żeby wskazać realne środowisko,
+użyj `--dart-define`, np.:
+
+```bash
+flutter run \
+  --dart-define=API_BASE_URL=https://api.radiozulawy.pl \
+  --dart-define=RADIO_STREAM_URL=https://stream.radiozulawy.pl/live
+```
+
+## Dokumentacja
+
+- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — struktura projektu, zasady
+  dependency direction, jak dodawać nowe feature'y.
+- [`docs/DEV_PLACEHOLDERS.md`](docs/DEV_PLACEHOLDERS.md) — rejestr wszystkich
+  wartości deweloperskich (URL-e, klucze), które trzeba uzupełnić przed
+  produkcją.
+
+## Integracje zewnętrzne
+
+Adresy API (WordPress, backend konkursów/zgłoszeń), stream radia oraz linki
+prawne są na tym etapie **development placeholderami** (domena
+`*.dev-placeholder.invalid`, celowo nierozwiązywalna) — patrz
+`docs/DEV_PLACEHOLDERS.md`. Panel administracyjny (`radiozulawy.pl/madminpanel`)
+to osobny, niezależny system i nie jest częścią tego repozytorium.
