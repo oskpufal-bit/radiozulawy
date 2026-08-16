@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'api/api_client.dart';
 import 'network/dio_client.dart';
+import 'services/share_service.dart';
 import 'storage/local_storage.dart';
 import 'storage/secure_storage.dart';
 
@@ -29,4 +30,11 @@ final dioProvider = Provider<Dio>((ref) => createDioClient());
 
 final apiClientProvider = Provider<ApiClient>(
   (ref) => ApiClient(ref.watch(dioProvider)),
+);
+
+/// App-wide "share this text" abstraction (currently clipboard-based — see
+/// `ShareService`), reusable by any feature that needs a share action, not
+/// just radio.
+final shareServiceProvider = Provider<ShareService>(
+  (ref) => const ClipboardShareService(),
 );

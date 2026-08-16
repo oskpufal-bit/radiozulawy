@@ -46,7 +46,10 @@ class AppShell extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final isOnRadioBranch = navigationShell.currentIndex == _radioBranchIndex;
     final playbackState = ref.watch(radioPlaybackControllerProvider);
-    final showMiniPlayer = playbackState.isSessionActive;
+    // Hidden on the Radio branch: RadioHomeScreen already shows a full hero
+    // player driven by the same state, so showing both would just duplicate
+    // the same play/pause control — see docs/RADIO_UI.md.
+    final showMiniPlayer = playbackState.isSessionActive && !isOnRadioBranch;
 
     return PopScope(
       // When we're not on the initial (Radio) branch, back should return

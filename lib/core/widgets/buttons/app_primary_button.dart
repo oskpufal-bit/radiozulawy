@@ -63,11 +63,17 @@ class AppPrimaryButton extends StatelessWidget {
                     Icon(icon, size: 20),
                     const SizedBox(width: AppSpacing.xs),
                   ],
-                  Text(
-                    label,
-                    style: AppTypography.labelLarge.copyWith(
-                      fontSize: 15,
-                      letterSpacing: 0.3,
+                  // Flexible + ellipsis: on very narrow constraints (e.g. a
+                  // button nested inside a padded card on a small phone)
+                  // this shrinks gracefully instead of overflowing.
+                  Flexible(
+                    child: Text(
+                      label,
+                      style: AppTypography.labelLarge.copyWith(
+                        fontSize: 15,
+                        letterSpacing: 0.3,
+                      ),
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 ],

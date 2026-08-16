@@ -87,15 +87,17 @@ prefiks ścieżki.
 ## Mini-player slot
 
 `AppShell` rezerwuje miejsce nad `AppBottomNavigation` dla globalnego
-mini-playera (`core/widgets/mini_player_shell.dart`, czysto wizualny, bez
-audio). Widoczność steruje parametrem konstruktora `showMiniPlayerPreview`
-(domyślnie `false`) — **celowo nie jest to provider Riverpod**: to tylko
-deweloperski szew do wizualnej weryfikacji slotu, zanim powstanie prawdziwy
-stan sesji audio. Gdy powstanie prawdziwy audio feature, ten parametr znika
-i zastępuje go realny warunek ("czy coś aktualnie gra"), czytany z
-providera tamtego feature'a. Pokazywanie/ukrywanie owinięte jest w
-`AnimatedSwitcher`, więc przyszła zmiana widoczności animuje się bez
-dodatkowej pracy.
+mini-playera (`core/widgets/mini_player_shell.dart`). Widoczność sterowana
+jest realnym stanem audio: `radioPlaybackControllerProvider`
+(`features/radio`, patrz `docs/AUDIO.md`) —
+`RadioPlaybackState.isSessionActive` (loading/buffering/playing/paused).
+
+Dodatkowo mini-player jest ukrywany na gałęzi Radio
+(`navigationShell.currentIndex == 0`): `RadioHomeScreen` ma już własny, duży
+hero player pokazujący dokładnie ten sam stan (patrz `docs/RADIO_UI.md`), więc
+pokazywanie obu naraz byłoby zbędnym zdublowaniem tej samej kontrolki
+play/pause. Na pozostałych czterech gałęziach mini-player pojawia się/znika
+przez `AnimatedSwitcher`, gdy sesja audio startuje/kończy się.
 
 ## Back button (Android)
 

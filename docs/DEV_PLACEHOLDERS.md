@@ -15,6 +15,8 @@ produkcyjnym wszystkie wiersze ze statusem `OPEN` muszą zostać zamknięte.
 | PH-007 | Środowisko builda | `APP_ENV` domyślnie `dev` | `lib/app/config/app_environment.dart`, `lib/app/config/app_config.dart` | Ustawić `--dart-define=APP_ENV=prod` (i pozostałe zmienne) w pipeline release | OPEN |
 | PH-008 | Router — ekran startowy | `initialLocation: AppRoutes.devDesignSystem` (`/dev/design-system`) | `lib/app/router/app_router.dart` | Przywrócić realny ekran startowy (`AppRoutes.radio` lub navigation shell) po zaimplementowaniu właściwych modułów biznesowych; usunąć/odlinkować `DesignSystemPreviewPage` z produkcyjnego flow | CLOSED — App Shell (etap 3) przywrócił `initialLocation: AppRoutes.radio`; `/dev/design-system` pozostaje osiągalny bezpośrednim wpisaniem trasy, ale nie jest linkowany z bottom navigation |
 | PH-009 | Radio — uprawnienie powiadomień | `POST_NOTIFICATIONS` zadeklarowane w manifeście, ale appka nie prosi jeszcze o nie w runtime (Android 13+) | `android/app/src/main/AndroidManifest.xml`, `lib/features/radio/data/radio_audio_handler.dart` (`docs/AUDIO.md`) | Dodać runtime request `POST_NOTIFICATIONS` (np. przy pierwszym `play()`) — bez niego media notification może nie być widoczna na Androidzie 13+, choć playback/background audio i tak działa | OPEN |
+| PH-010 | Radio UI — bieżąca audycja | Statyczny `devCurrentShow` ("Dzień dobry Żuławy" / "Redakcja Radia Żuławy" / 08:00–10:00) | `lib/features/radio/data/dev_show_schedule_data.dart`, wystawiane przez `currentShowProvider` (`presentation/radio_providers.dart`) | Repozytorium/API dostarczające prawdziwe metadane bieżącej audycji (docelowo ICY metadata i/lub ramówka), podpięte w miejscu `currentShowProvider` bez zmian w widgetach (`docs/RADIO_UI.md`) | OPEN |
+| PH-011 | Radio UI — podgląd ramówki | Statyczna lista `devSchedulePreview` (4 pozycje) | `lib/features/radio/data/dev_show_schedule_data.dart`, wystawiane przez `schedulePreviewProvider` (`presentation/radio_providers.dart`) | Repozytorium/API prawdziwej ramówki, podpięte w miejscu `schedulePreviewProvider` bez zmian w `SchedulePreview` (`docs/RADIO_UI.md`); pełny ekran `/schedule` nadal jest placeholderem (`AppDetailPage`) | OPEN |
 
 ## Jak dostarczyć realne wartości
 
@@ -26,7 +28,3 @@ flutter run \
   --dart-define=API_BASE_URL=https://api.radiozulawy.pl \
   --dart-define=WORDPRESS_API_URL=https://radiozulawy.pl/wp-json/wp/v2 \
   --dart-define=RADIO_STREAM_URL=https://stream.radiozulawy.pl/live
-```
-
-Żadna z tych wartości nie powinna trafić do repozytorium jako hardcoded string
-w kodzie feature'ów — tylko przez `AppConfig`.

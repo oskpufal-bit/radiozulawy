@@ -168,7 +168,8 @@ void main() {
   });
 
   testWidgets(
-    'mini-player appears for an active session and survives switching tabs',
+    'mini-player stays hidden on the Radio tab (the hero player already '
+    'shows the same state) but appears after switching tabs',
     (tester) async {
       final fakeRadioRepository = FakeRadioRepository();
       addTearDown(fakeRadioRepository.dispose);
@@ -180,10 +181,14 @@ void main() {
       await _settle(tester);
 
       expect(
-        find.byKey(const ValueKey('mini-player-slot-visible')),
+        find.byKey(const ValueKey('mini-player-slot-hidden')),
         findsOneWidget,
       );
-      expect(find.text('Na żywo'), findsOneWidget);
+      expect(
+        find.byKey(const ValueKey('mini-player-slot-visible')),
+        findsNothing,
+      );
+      expect(find.text('Słuchasz na żywo'), findsOneWidget);
 
       await tester.tap(find.text('Newsy'));
       await _settle(tester);
@@ -205,6 +210,10 @@ void main() {
     fakeRadioRepository.emit(
       const RadioPlaybackState(status: RadioPlaybackStatus.playing),
     );
+    await _settle(tester);
+
+    // The mini-player only renders off the Radio tab (see the test above).
+    await tester.tap(find.text('Newsy'));
     await _settle(tester);
 
     await tester.tap(

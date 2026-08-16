@@ -1,25 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
-import '../../../app/theme/app_colors.dart';
-import '../../../app/theme/app_gradients.dart';
-import '../../../app/theme/app_radius.dart';
-import '../../../app/theme/app_shadows.dart';
 import '../../../app/theme/app_spacing.dart';
-import '../../../app/theme/app_typography.dart';
+import '../../../core/providers.dart';
+import '../../../core/services/share_service.dart';
 import '../../../core/widgets/app_background.dart';
-import '../../../core/widgets/buttons/app_primary_button.dart';
-import '../../../core/widgets/live_badge.dart';
-import '../../../core/widgets/states/error_state.dart';
-import '../domain/radio_playback_state.dart';
-import 'radio_playback_controller.dart';
 import 'radio_providers.dart';
+import 'widgets/radio_header.dart';
+import 'widgets/radio_hero_player.dart';
+import 'widgets/radio_quick_actions.dart';
+import 'widgets/schedule_preview.dart';
 
-/// Default tab on launch. Technical/intermediate screen for this stage: it
-/// wires the real playback engine (play/pause/retry, loading/buffering,
-/// errors) through `radioPlaybackControllerProvider`, but is not the final
-/// Radio Live layout (no hero artwork/current-show metadata yet — that's a
-/// later task, see docs/AUDIO.md).
+/// Final Radio Live screen: header/branding, the hero player (artwork,
+/// current show, play/pause, status), a "Co dalej" schedule preview and
+/// quick actions (share, full schedule).
+///
+/// Playback comes from `radioPlaybackControllerProvider` — the exact same
+/// state the global mini-player uses (see docs/AUDIO.md); show/schedule
+/// metadata is a deliberately separate concern, see docs/RADIO_UI.md. The
+/// global mini-player hides itself while this screen is active (see
+/// `AppShell`) so the two never show at once.
 class RadioHomeScreen extends ConsumerWidget {
   const RadioHomeScreen({super.key});
 
@@ -27,111 +28,45 @@ class RadioHomeScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(radioPlaybackControllerProvider);
     final controller = ref.read(radioPlaybackControllerProvider.notifier);
+    final currentShow = ref.watch(currentShowProvider);
+    final schedule = ref.watch(schedulePreviewProvider);
 
     return Scaffold(
       body: AppBackground(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        child: ListView(
+          padding: const EdgeInsets.only(
+            top: AppSpacing.md,
+            bottom: AppSpacing.xxl,
+          ),
           children: [
+            RadioHeader(animateLive: state.isPlaying),
             const SizedBox(height: AppSpacing.lg),
-            Text(
-              'Radio Żuławy',
-              style: AppTypography.displayMedium.copyWith(
-                color: AppColors.textPrimary,
-              ),
-            ),
-            const SizedBox(height: AppSpacing.xxs),
-            Text(
-              '106.4 FM · Żuławy i okolice',
-              style: AppTypography.bodyMedium.copyWith(
-                color: AppColors.textSecondary,
-              ),
+            RadioHeroPlayer(
+              state: state,
+              currentShow: currentShow,
+              controller: controller,
             ),
             const SizedBox(height: AppSpacing.xl),
-            Expanded(
-              child: Center(
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(AppSpacing.xl),
-                  decoration: BoxDecoration(
-                    gradient: AppGradients.heroPlayer,
-                    borderRadius: AppRadius.lgRadius,
-                    boxShadow: AppShadows.medium,
-                  ),
-                  child: state.hasError
-                      ? ErrorState(
-                          title: 'Nie udało się połączyć',
-                          description: state.errorMessage,
-                          onRetry: controller.retry,
-                          icon: Icons.signal_wifi_off_rounded,
-                        )
-                      : _PlayerContent(state: state, controller: controller),
-                ),
-              ),
+            SchedulePreview(
+              entries: schedule,
+              onSeeFullSchedule: () => context.go('/schedule'),
+            ),
+            const SizedBox(height: AppSpacing.xl),
+            RadioQuickActions(
+              onShare: () => _share(context, ref.read(shareServiceProvider)),
+              onSeeFullSchedule: () => context.go('/schedule'),
             ),
           ],
         ),
       ),
     );
   }
-}
 
-class _PlayerContent extends StatelessWidget {
-  const _PlayerContent({required this.state, required this.controller});
-
-  final RadioPlaybackState state;
-  final RadioPlaybackController controller;
-
-  String get _actionLabel => switch (state.status) {
-    RadioPlaybackStatus.playing => 'Pauza',
-    RadioPlaybackStatus.loading => 'Łączenie...',
-    RadioPlaybackStatus.buffering => 'Buforowanie...',
-    _ => 'Słuchaj na żywo',
-  };
-
-  @override
-  Widget build(BuildContext context) {
-    // SingleChildScrollView (not a plain Column) because this content sits
-    // inside a height-constrained hero container (Expanded on RadioHomeScreen)
-    // whose available height shrinks further whenever the global mini-player
-    // slot is visible above the bottom navigation — scrolling avoids a
-    // RenderFlex overflow instead of clipping content in that squeeze.
-    return SingleChildScrollView(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const LiveBadge(),
-          const SizedBox(height: AppSpacing.lg),
-          const Icon(Icons.graphic_eq_rounded, size: 56, color: Colors.white),
-          const SizedBox(height: AppSpacing.md),
-          Text(
-            '106.4 FM',
-            style: AppTypography.displayLarge.copyWith(color: Colors.white),
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          AppPrimaryButton(
-            label: _actionLabel,
-            icon: state.isPlaying
-                ? Icons.pause_rounded
-                : Icons.play_arrow_rounded,
-            isLoading: state.isBuffering,
-            expand: false,
-            onPressed: controller.togglePlayback,
-          ),
-          // AppPrimaryButton swaps its label for a spinner while isLoading,
-          // so loading/buffering need their own caption to stay
-          // distinguishable (see docs/AUDIO.md, "Buffering").
-          if (state.isBuffering) ...[
-            const SizedBox(height: AppSpacing.sm),
-            Text(
-              _actionLabel,
-              style: AppTypography.bodySmall.copyWith(
-                color: Colors.white.withValues(alpha: 0.8),
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
+  Future<void> _share(BuildContext context, ShareService shareService) async {
+    await shareService.share('Słuchaj Radia Żuławy 106.4 FM');
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Skopiowano do schowka')));
   }
 }
