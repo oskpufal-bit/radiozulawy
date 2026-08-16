@@ -32,7 +32,8 @@ lib/
 │   └── providers.dart # DI: sharedPreferences/localStorage/secureStorage/dio/apiClient
 │
 ├── features/       # moduły biznesowe, feature-first
-│   ├── radio/        # zakładka startowa — placeholder (patrz docs/NAVIGATION.md)
+│   ├── radio/        # zakładka startowa — silnik odtwarzania na żywo
+│   │                 # (just_audio + audio_service), patrz docs/AUDIO.md
 │   ├── news/         # zakładka Newsy — placeholder + `/news/:slug`
 │   ├── submit/        # zakładka Zgłoś — placeholder
 │   ├── podcasts/      # zakładka Podcasty — placeholder + `/podcasts/:id`
@@ -45,9 +46,11 @@ lib/
 └── main.dart       # wyłącznie wywołuje bootstrap()
 ```
 
-Wszystkie pięć feature'ów głównej nawigacji istnieją już jako lekkie
-placeholdery (App Shell, patrz docs/NAVIGATION.md); ich `data`/`domain` będą
-dodawane w kolejnych zadaniach. `core/audio` i pozostałe podkatalogi
+Cztery z pięciu feature'ów głównej nawigacji są nadal lekkimi placeholderami
+(App Shell, patrz docs/NAVIGATION.md); ich `data`/`domain` będą dodawane w
+kolejnych zadaniach. `features/radio` ma już pełną warstwę
+`data/domain/presentation` — prawdziwy silnik streamingu Icecast/Shoutcast,
+patrz "Audio playback" niżej i `docs/AUDIO.md`. Pozostałe podkatalogi
 `features/*` (contests, schedule, notifications, settings) celowo **nie
 istnieją jeszcze** — zgodnie z zasadą projektu nie tworzymy pustych katalogów
 na zapas. Twórz katalog feature'a dopiero w zadaniu, które faktycznie go
@@ -99,6 +102,30 @@ reużywalne komponenty zbudowane na tych tokenach (przyciski, karty, stany,
 widgety zamiast definiować własne kolory/spacing/radius. Pełny opis:
 `docs/DESIGN_SYSTEM.md`. Katalog komponentów można obejrzeć pod
 `/dev/design-system` (`DesignSystemPreviewPage`, `lib/app/dev/`).
+
+## Audio playback
+
+`features/radio` jest jedynym feature'em z prawdziwym audio engine (na żywo,
+Icecast/Shoutcast, `just_audio` + `audio_service`, background playback +
+system media controls). Przepływ zależności:
+
+```text
+Presentation
+    ↓
+RadioPlaybackController
+    ↓
+RadioRepository (domain, abstrakcja)
+    ↓
+AudioServiceRadioRepository (data, adapter)
+    ↓
+RadioAudioHandler (data, jedyny AudioPlayer)
+    ↓
+just_audio
+```
+
+Pełny opis (podział odpowiedzialności, `RadioPlaybackState`, konfiguracja
+URL-a, background playback, lifecycle, testowalność): `docs/AUDIO.md`. Nie
+duplikuj tej treści tutaj.
 
 ## Networking — Dio
 

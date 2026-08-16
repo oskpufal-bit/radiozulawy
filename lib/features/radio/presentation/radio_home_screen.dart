@@ -91,28 +91,47 @@ class _PlayerContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        const LiveBadge(),
-        const SizedBox(height: AppSpacing.lg),
-        const Icon(Icons.graphic_eq_rounded, size: 56, color: Colors.white),
-        const SizedBox(height: AppSpacing.md),
-        Text(
-          '106.4 FM',
-          style: AppTypography.displayLarge.copyWith(color: Colors.white),
-        ),
-        const SizedBox(height: AppSpacing.lg),
-        AppPrimaryButton(
-          label: _actionLabel,
-          icon: state.isPlaying
-              ? Icons.pause_rounded
-              : Icons.play_arrow_rounded,
-          isLoading: state.isBuffering,
-          expand: false,
-          onPressed: controller.togglePlayback,
-        ),
-      ],
+    // SingleChildScrollView (not a plain Column) because this content sits
+    // inside a height-constrained hero container (Expanded on RadioHomeScreen)
+    // whose available height shrinks further whenever the global mini-player
+    // slot is visible above the bottom navigation — scrolling avoids a
+    // RenderFlex overflow instead of clipping content in that squeeze.
+    return SingleChildScrollView(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const LiveBadge(),
+          const SizedBox(height: AppSpacing.lg),
+          const Icon(Icons.graphic_eq_rounded, size: 56, color: Colors.white),
+          const SizedBox(height: AppSpacing.md),
+          Text(
+            '106.4 FM',
+            style: AppTypography.displayLarge.copyWith(color: Colors.white),
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          AppPrimaryButton(
+            label: _actionLabel,
+            icon: state.isPlaying
+                ? Icons.pause_rounded
+                : Icons.play_arrow_rounded,
+            isLoading: state.isBuffering,
+            expand: false,
+            onPressed: controller.togglePlayback,
+          ),
+          // AppPrimaryButton swaps its label for a spinner while isLoading,
+          // so loading/buffering need their own caption to stay
+          // distinguishable (see docs/AUDIO.md, "Buffering").
+          if (state.isBuffering) ...[
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              _actionLabel,
+              style: AppTypography.bodySmall.copyWith(
+                color: Colors.white.withValues(alpha: 0.8),
+              ),
+            ),
+          ],
+        ],
+      ),
     );
   }
 }

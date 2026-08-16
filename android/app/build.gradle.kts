@@ -6,7 +6,10 @@ plugins {
 
 android {
     namespace = "pl.radiozulawy.radiozulawy"
-    compileSdk = flutter.compileSdkVersion
+    // flutter_secure_storage requires compileSdk 37+; flutter.compileSdkVersion
+    // (36) is behind that as of Flutter 3.44.4, so pin it explicitly. Platform
+    // 37 is installed in the local Android SDK.
+    compileSdk = 37
     ndkVersion = flutter.ndkVersion
 
     compileOptions {

@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:radiozulawy/app/app.dart';
 import 'package:radiozulawy/core/providers.dart';
 import 'package:radiozulawy/core/widgets/app_category_chip.dart';
+import 'package:radiozulawy/core/widgets/mini_player_shell.dart';
 import 'package:radiozulawy/features/radio/domain/radio_playback_state.dart';
 import 'package:radiozulawy/features/radio/presentation/radio_providers.dart';
 
@@ -206,7 +207,12 @@ void main() {
     );
     await _settle(tester);
 
-    await tester.tap(find.byIcon(Icons.pause_rounded));
+    await tester.tap(
+      find.descendant(
+        of: find.byType(MiniPlayerShell),
+        matching: find.byIcon(Icons.pause_rounded),
+      ),
+    );
     await _settle(tester);
 
     expect(fakeRadioRepository.pauseCalls, 1);
