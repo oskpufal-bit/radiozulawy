@@ -46,3 +46,5 @@ prawne są na tym etapie **development placeholderami** (domena
 `*.dev-placeholder.invalid`, celowo nierozwiązywalna) — patrz
 `docs/DEV_PLACEHOLDERS.md`. Panel administracyjny (`radiozulawy.pl/madminpanel`)
 to osobny, niezależny system i nie jest częścią tego repozytorium.
+
+<!-- Milestone 1 web-edit verification -->
